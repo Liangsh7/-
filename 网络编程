@@ -1,0 +1,167 @@
+# UDP
+
+## 发送端步骤
+
+- 创建用于发送端的UDP的socket对象
+- 创建用于发送的数据报包
+- send方法去发送数据报包
+- 关闭资源
+
+
+
+## 接收端步骤
+
+- 创建用于接收的UDP的socket对象
+- 创建用于接收的数据报包
+- receive方法接收数据报包
+- 解析数据报包
+- 关闭资源
+
+package com.cskaoyan.udp.v1;
+
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+
+/**
+ * @description: 接收端
+ * @author: songtao@cskaoyan.onaliyun.com
+ **/
+
+public class Receiver {
+    public static void main(String[] args) throws IOException {
+        // - 创建用于接收的UDP的socket对象
+        DatagramSocket datagramSocket = new DatagramSocket(9999);
+        //- 创建用于接收的数据报包
+        // DatagramPacket(byte[] buf,  int offset, int length)
+        byte[] bytes = new byte[1024];
+        DatagramPacket receivePacket = new DatagramPacket(bytes, 0, bytes.length);
+        //- receive方法接收数据报包
+        System.out.println("receive before");
+        datagramSocket.receive(receivePacket);
+        System.out.println("receive after");
+
+        //- 解析数据报包
+        // 数据在包里面
+        byte[] data = receivePacket.getData();
+        int offset = receivePacket.getOffset();
+        int length = receivePacket.getLength();
+        System.out.println(new String(data,offset,length));
+        //- 关闭资源
+        datagramSocket.close();
+    }
+}
+
+
+
+package com.cskaoyan.udp.v1;
+
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+
+/**
+ * @description: 发送端
+ * @author: songtao@cskaoyan.onaliyun.com
+ **/
+
+public class Sender {
+    public static void main(String[] args) throws IOException {
+        // 来自应用层的数据
+        String s = "hello udp";
+
+        // - 创建用于发送端的DUP的socket对象
+        DatagramSocket datagramSocket = new DatagramSocket(8888);
+        //- 创建用于发送的数据报包
+        // DatagramPacket(byte[] buf,  int offset, int length,
+        // InetAddress address, int port)
+        byte[] bytes = s.getBytes();
+        InetAddress targetIp = InetAddress.getByName("127.0.0.1");
+        int port = 9999;
+        DatagramPacket sendPacket =
+                new DatagramPacket(bytes, 0, bytes.length, targetIp, port);
+        //- send方法去发送数据报包
+        datagramSocket.send(sendPacket);
+        //- 关闭资源
+        datagramSocket.close();
+    }
+}
+
+# TCP
+
+## 发送端(Client)
+
+- 创建客户端的**socket**对象
+- 通过socket对象获取输入输出流
+- 通过输入 输出流 就可以读取 写入数据
+- 关闭资源
+
+## 接收端(Server)
+
+- 创建服务端的socket对象   **ServerSocket**
+- 通过accept方法建立连接 得到一个socket对象
+- 获取输入 输出流
+- 通过输入 输出流读取 写入数据
+package com.cskaoyan.tcp.v1;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+
+/**
+ * @description: 服务端
+ * @author: songtao@cskaoyan.onaliyun.com
+ **/
+
+public class Server {
+    public static void main(String[] args) throws IOException {
+        // - 创建服务端的socket对象   ServerSocket
+        // ServerSocket(int port)
+        // 创建绑定到特定端口的服务器套接字
+        ServerSocket serverSocket = new ServerSocket(8888);
+        //- 通过accept方法建立连接 得到一个socket对象
+        Socket client = serverSocket.accept();
+        //- 获取输入 输出流
+        // 获取客户端发送来的数据
+        // getInputStream()
+        InputStream in = client.getInputStream();
+        //- 通过输入 输出流读取 写入数据
+        byte[] bytes = new byte[1024];
+        int readCount = in.read(bytes);
+        String s = new String(bytes, 0, readCount);
+        InetAddress inetAddress = client.getInetAddress();
+        System.out.println("接收到了来自"+ inetAddress + "的消息: "+s);
+    }
+}
+
+
+package com.cskaoyan.tcp.v1;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.Socket;
+
+/**
+ * @description: 客户端
+ * @author: songtao@cskaoyan.onaliyun.com
+ **/
+
+public class Client {
+    public static void main(String[] args) throws IOException {
+        // - 创建客户端的socket对象
+        // Socket(String host,  int port)
+        // 创建一个流套接字并将其连接到指定主机上的指定端口号
+        Socket socket = new Socket("127.0.0.1", 8888);
+        //- 通过socket对象获取输入输出流
+        // getOutPutStream
+        OutputStream out = socket.getOutputStream();
+        //- 通过输入 输出流 就可以读取 写入数据
+        out.write("hello tcp".getBytes());
+        //- 关闭资源
+        socket.close();
+    }
+}
+
